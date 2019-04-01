@@ -290,6 +290,9 @@ module.exports = function(files) {
         }
 
         var name = path.basename(file).replace(/\.[a-zA-Z0-9]+$/, '')
+        if (opts.remoteSrc && json.spritemap[name]) {
+          name += '1'
+        }
         appendFile(name, tmp, tempFile, function(err) {
           if (rawparts != null ? rawparts.length : void 0) {
             async.forEachSeries(rawparts, function(ext, cb) {
