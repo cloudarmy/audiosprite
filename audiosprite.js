@@ -48,6 +48,11 @@ module.exports = function(files) {
 
   opts = _.extend({}, defaults, opts)
 
+  let ffmpegPath = 'ffmpeg';
+  if (process && process.env && process.env.FFMPEG_PATH){
+    ffmpegPath = process.env.FFMPEG_PATH;
+  }
+
   // make sure output directory exists
   const outputDir = path.dirname(opts.output)
   if (!fs.existsSync(outputDir)) {
@@ -65,7 +70,7 @@ module.exports = function(files) {
     , spritemap: {}
   }
 
-  spawn('ffmpeg', ['-version']).on('exit', code => {
+  spawn(ffmpegPath, ['-version']).on('exit', code => {
     if (code) {
       callback(new Error('ffmpeg was not found on your path'))
     }
@@ -115,7 +120,7 @@ module.exports = function(files) {
 
     fs.exists(src, function(exists) {
       if (exists || remote) {
-        let ffmpeg = spawn('ffmpeg', ['-i',  remote ? src :path.resolve(src)]
+        let ffmpeg = spawn(ffmpegPath, ['-i',  remote ? src :path.resolve(src)]
           .concat(wavArgs).concat('pipe:'))
         ffmpeg.stdout.pipe(fs.createWriteStream(dest, {flags: 'w'}))
         ffmpeg.on('close', function(code, signal) {
@@ -186,7 +191,7 @@ module.exports = function(files) {
   function exportFile(src, dest, ext, opt, store, cb) {
     var outfile = dest + '.' + ext;
 
-    spawn('ffmpeg',['-y', '-ar', opts.samplerate, '-ac', opts.channels, '-f', 's16le', '-i', src]
+    spawn(ffmpegPath,['-y', '-ar', opts.samplerate, '-ac', opts.channels, '-f', 's16le', '-i', src]
       .concat(opt).concat(outfile))
       .on('exit', function(code, signal) {
         if (code) {
