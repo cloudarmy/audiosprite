@@ -94,10 +94,6 @@ module.exports = function(files) {
 
   function mktemp(prefix) {
     let tmpdir = require('os').tmpdir() || '.';
-    if (ffmpegPath === '/snap/bin/ffmpeg') {
-      // linux ffmpeg installed with snap uses a sandbox tmp directory
-      tmpdir = '/tmp/snap.ffmpeg' + tmpdir;
-    }
     return path.join(tmpdir, prefix + '.' + Math.random().toString().substr(2));
   }
 
