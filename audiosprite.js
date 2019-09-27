@@ -195,6 +195,7 @@ module.exports = function(files) {
       .concat(opt).concat(outfile))
       .on('exit', function(code, signal) {
         if (code) {
+          opts.logger.error('ffmpeg error code:' + code + ' signal:' + signal)
           return cb({
             msg: 'Error exporting file',
             format: ext,
@@ -320,7 +321,7 @@ module.exports = function(files) {
         exportFile(tempFile, opts.output, ext, formats[ext], true, cb)
       }, function(err) {
         if (err) {
-          return callback(new Error('Error exporting file'))
+          return callback(err)
         }
         if (opts.autoplay) {
           json.autoplay = opts.autoplay
