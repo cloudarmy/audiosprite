@@ -3,6 +3,7 @@ const path = require('path')
 const async = require('async')
 const _ = require('underscore')._
 const glob = require('glob');
+const os = require('os');
 
 const defaults = {
   output: 'output',
@@ -25,7 +26,8 @@ const defaults = {
     debug: function(){},
     info: function(){},
     log: function(){}
-  }
+  },
+  tmpdir: os.tmpdir(),
 }
 
 module.exports = function(files) {
@@ -50,7 +52,7 @@ module.exports = function(files) {
 
   let ffmpegPath = 'ffmpeg';
   if (process && process.env && process.env.FFMPEG_PATH){
-    ffmpegPath = process.env.FFMPEG_PATH;
+    ffmpegPath = process.env.FFMPEG_PATH
   }
 
   // make sure output directory exists
@@ -93,7 +95,7 @@ module.exports = function(files) {
   })
 
   function mktemp(prefix) {
-    let tmpdir = require('os').tmpdir() || '.';
+    let tmpdir = opts.tmpdir || '.';
     return path.join(tmpdir, prefix + '.' + Math.random().toString().substr(2));
   }
 

@@ -35,7 +35,7 @@
     "mocha": "~2.2.4"
   },
   "engines": {
-    "node": ">=0.10"
+    "node": ">=8.0"
   },
   "optionalDependencies": {},
   "scripts": {
