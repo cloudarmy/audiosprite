@@ -98,7 +98,7 @@ module.exports = function(files) {
   }
 
   function spawn(name, opt) {
-    opts.logger.debug('Spawn', { cmd: [name].concat(opt).join(' ') });
+    opts.logger.info('Spawn', { cmd: [name].concat(opt).join(' ') });
     return require('child_process').spawn(name, opt);
   }
 
@@ -189,13 +189,12 @@ module.exports = function(files) {
   }
 
   function exportFile(src, dest, ext, opt, store, cb) {
-    var outfile = dest + '.' + ext;
+    const outfile = dest + '.' + ext;
 
-    spawn(ffmpegPath,['-y', '-ar', opts.samplerate, '-ac', opts.channels, '-f', 's16le', '-i', src]
-      .concat(opt).concat(outfile))
-      .on('exit', function(code, signal) {
+    const ffmpeg = spawn(ffmpegPath,['-y', '-ar', opts.samplerate, '-ac', opts.channels, '-f', 's16le', '-i', src].concat(opt).concat(outfile));
+    ffmpeg.on('exit', function(code, signal) {
         if (code) {
-          opts.logger.error('ffmpeg error code:' + code + ' signal:' + signal)
+          opts.logger.info('ffmpeg error code:' + code + ' signal:' + signal)
           return cb({
             msg: 'Error exporting file',
             format: ext,
@@ -212,13 +211,24 @@ module.exports = function(files) {
             cb()
           })
         } else {
-          opts.logger.info('Exported ' + ext + ' OK', { file: outfile })
+          opts.logger.info('Exported ' + ext + ' OK', { file: outfile, code })
           if (store) {
             json.resources.push(outfile)
           }
           cb()
         }
       })
+    ffmpeg.stderr.on('data', (data) => {
+      opts.logger.info(`ffmpeg stderr: ${data}`)
+    })
+    ffmpeg.stdout.on('data', (data) => {
+      opts.logger.debug(`ffmpeg stdout: ${data}`)
+    })
+    ffmpeg.on('close', (code) => {
+      if (code !== 0) {
+        opts.logger.info(`ffmpeg process exited with code ${code}`)
+      }
+    })
   }
 
   function exportFileCaf(src, dest, cb) {
@@ -331,16 +341,16 @@ module.exports = function(files) {
           return opts.path ? path.join(opts.path, path.basename(e)) : e
         })
 
-        var finalJson = {}
-
+        let finalJson = {}
+        let spriteInfo;
         switch (opts.format) {
 
           case 'howler':
           case 'howler2':
             finalJson[opts.format === 'howler' ? 'urls' : 'src'] = [].concat(json.resources)
             finalJson.sprite = {}
-            for (var sn in json.spritemap) {
-              var spriteInfo = json.spritemap[sn]
+            for (let sn in json.spritemap) {
+              spriteInfo = json.spritemap[sn]
               finalJson.sprite[sn] = [spriteInfo.start * 1000, (spriteInfo.end - spriteInfo.start) * 1000]
               if (spriteInfo.loop) {
                 finalJson.sprite[sn].push(true)
@@ -351,8 +361,8 @@ module.exports = function(files) {
           case 'createjs':
             finalJson.src = json.resources[0]
             finalJson.data = {audioSprite: []}
-            for (var sn in json.spritemap) {
-              var spriteInfo = json.spritemap[sn]
+            for (let sn in json.spritemap) {
+              spriteInfo = json.spritemap[sn]
               finalJson.data.audioSprite.push({
                 id: sn,
                 startTime: spriteInfo.start * 1000,
