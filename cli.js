@@ -99,15 +99,23 @@ var optimist = require('optimist')
 var argv = optimist.argv
 var opts = _.extend({}, argv)
 
-winston.remove(winston.transports.Console)
-winston.add(winston.transports.Console, {
-  colorize: true
-, level: argv.log
-, handleExceptions: false
-})
-winston.debug('Parsed arguments', argv)
 
-opts.logger = winston
+
+const logger = winston.createLogger({
+  level: argv.log,
+  format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.splat(),
+      winston.format.simple()
+  ),
+  transports: [
+    new winston.transports.Console({ level: argv.log, handleExceptions: false}),
+  ]
+});
+
+logger.debug('Parsed arguments', argv)
+
+opts.logger = logger
 
 opts.bitrate = parseInt(argv.bitrate, 10)
 opts.samplerate = parseInt(argv.samplerate, 10)

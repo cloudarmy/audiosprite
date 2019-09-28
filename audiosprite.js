@@ -100,7 +100,7 @@ module.exports = function(files) {
   }
 
   function spawn(name, opt) {
-    opts.logger.info('Spawn', { cmd: [name].concat(opt).join(' ') });
+    opts.logger.debug('Spawn', { cmd: [name].concat(opt).join(' ') });
     return require('child_process').spawn(name, opt);
   }
 
@@ -122,7 +122,7 @@ module.exports = function(files) {
 
     fs.exists(src, function(exists) {
       if (exists || remote) {
-        let ffmpeg = spawn(ffmpegPath, ['-hide_banner', '-i',  remote ? src :path.resolve(src)]
+        let ffmpeg = spawn(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-i',  remote ? src :path.resolve(src)]
           .concat(wavArgs).concat('pipe:'))
         ffmpeg.stdout.pipe(fs.createWriteStream(dest, {flags: 'w'}))
         ffmpeg.on('close', function(code, signal) {
@@ -193,7 +193,7 @@ module.exports = function(files) {
   function exportFile(src, dest, ext, opt, store, cb) {
     const outfile = dest + '.' + ext;
 
-    const ffmpeg = spawn(ffmpegPath,['-hide_banner', '-y', '-ar', opts.samplerate, '-ac', opts.channels, '-f', 's16le', '-i', src].concat(opt).concat(outfile));
+    const ffmpeg = spawn(ffmpegPath,['-hide_banner', '-loglevel', 'error', '-y', '-ar', opts.samplerate, '-ac', opts.channels, '-f', 's16le', '-i', src].concat(opt).concat(outfile));
     ffmpeg.on('exit', function(code, signal) {
         if (code) {
           opts.logger.info('ffmpeg error code:' + code + ' signal:' + signal)
@@ -222,14 +222,6 @@ module.exports = function(files) {
       })
     ffmpeg.stderr.on('data', (data) => {
       opts.logger.info(`ffmpeg stderr: ${data}`)
-    })
-    ffmpeg.stdout.on('data', (data) => {
-      opts.logger.debug(`ffmpeg stdout: ${data}`)
-    })
-    ffmpeg.on('close', (code) => {
-      if (code !== 0) {
-        opts.logger.info(`ffmpeg process exited with code ${code}`)
-      }
     })
   }
 
